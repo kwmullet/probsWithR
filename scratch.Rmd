@@ -1,0 +1,68 @@
+---
+title: "Examples of exposing computing inconsistencies in R"
+author: "Kevin Mullet &lt;kwm@unm.edu&gt;"
+date: "`r Sys.Date()`"
+output: pdf_document
+bibliography: "errorswithr.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      include = TRUE,
+                      tidy = TRUE)
+
+library(tidyverse)
+```
+
+There two areas where R's performance doesn't necessarily match what might be broad expectations in disciplines outside of computer science or compiler design: rounding and floating point errors.
+
+### The base round() function doesn't do what one might expect.
+
+@khurana2023 in “*Rounding in R: Common Data Wrangling Frustrations and Workarounds in R, Julia, and Python*” and @rcoreteam2025 in “*R: A Language and Environment for Statistical Computing | Reference Index*” discuss the fact that R uses the ISO/IEC 60559 standard for rounding which specifies that when there is an equal distance between an even and odd number, the rounding will take place toward the even number [@ieeeiec2020, $\S$ 4.3.1; @rcoreteam2025,p.495], all reasonable assumptions to the contrary. 
+
+For example, if we use the R base round a group of even numbers with a .5 fractional part in R (or likely, in Python or Julia) we will end up with the number being rounded *down*. 
+
+```{r base rounding example 1}
+base::round(c(0.5, 2.5, 4.5, 6.5, 8.5)) %>% cat()
+```
+If we likewise use Rs base round function on a group of odd numbers with a .5 fractional part, the rounding will occur as would be generally expected in most disciplines.
+
+```{r base rounding example 2 }
+
+base::round(c(9.5, 7.5, 5.5, 3.5, 1.5)) %>% cat()
+
+```
+The package roundyh [@yuanheng2023], however, provides a roundx() function which performs as expected, and rounds *up* when there is a .5 fractal part.
+
+```{r using roundx}
+library(roundyh)
+
+decimal_places <- 0
+
+roundyh::roundx(c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5), decimal_places) %>% cat()
+
+```
+
+
+
+
+
+
+
+As documented in [@hornik2024, FAQ 7.31.] “Why doesn't R think these numbers are equal?” If I want to round 0.5, R will typically give me 0 instead of 1:
+
+```{r}
+
+library(numbers)
+library(formatR)
+
+div(15,5)
+
+```
+
+
+
+\pagebreak
+## References
+
+
